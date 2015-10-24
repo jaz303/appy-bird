@@ -2,9 +2,11 @@ const fs = require('fs');
 const http = require('http');
 const httpStatus = require('http-status');
 const mime = require('mime-types');
+const path = require('path');
 const parseUrl = require('url').parse;
 const Promise = require('es6-promise').Promise;
 const rescape = require('escape-string-regexp');
+const statik = require('node-static');
 
 const corsHeaders = {
 	origin 		: 'Access-Control-Allow-Origin',
@@ -15,35 +17,47 @@ function stringResponse(status, mimeType, str) {
 	return [status, {'Content-Type': mimeType}, str];
 }
 
-function fileResponse(file) {
-	return new Promise(function(resolve, reject) {
-		fs.stat(file, function(err, stat) {
-			if (err) return reject(err); // TODO: should return 404 on ENOENT
-			return resolve([200, {
-				'Content-Type': mime.lookup(file) || 'application/octet-stream',
-				'Content-Length': stat.size
-			}, fs.createReadStream(file)]);
-		}); 
-	});
+function sendResponse(res, status, headers, body) {
+	if (!('Content-Length' in headers)) {
+		if (typeof body === 'string') {
+			headers['Content-Length'] = Buffer.byteLength(body, 'utf8');
+		} else if (typeof body.byteLength === 'function') {
+			headers['Content-Length'] = body.byteLength();
+		} else {
+			return _handleResponse(responder.status(500));
+		}
+	}
+	// for (var k in cors) {
+	// 	headers[corsHeaders[k]] = cors[k];
+	// }
+	res.writeHead(status, headers);
+	if (typeof body.pipe === 'function') {
+		body.pipe(res);
+	} else {
+		res.end(body);
+	}
+}
+
+function sendTextErrorResponse(res, status) {
+	sendResponse(res, status, {'Content-Type': 'text/plain'}, httpStatus[status] || 'Error');
 }
 
 function attachFileHandler(route) {
-	route.handler = function(req, res) {
-		return fileResponse(route.file);
+	var server = new statik.Server(path.dirname(route.file));
+	var file = './' + path.basename(route.file);
+	route.handler = function(req, _1, _2, res) {
+		server.serveFile(file, 200, {}, req, res);
 	}
 }
 
 function attachDirectoryHandler(route) {
-	const localDirectory = route.directory;
-	const directoryPath = route.path;
-	if (typeof directoryPath !== 'string') {
-		throw new Error("directory handler path must be a string");
-	}
-	route.path = new RegExp("^" + rescape(route.path));
-	route.handler = function(req, res) {
-		// TODO: sanitisation
-		const filePath = localDirectory + req.uri.pathname.substring(directoryPath.length);
-		return fileResponse(filePath);
+	var server = new statik.Server(route.directory);
+	route.handler = function(req, _1, _2, res) {
+		server.serve(req, res, function(e, _3) {
+			if (e) {
+				sendTextErrorResponse(res, e.status === 404 ? 404 : 500);
+			}
+		});
 	}
 }
 
@@ -135,11 +149,13 @@ module.exports = function(opts) {
 				}
 			}
 			req.body = body;
-			return _handleResponse(route.handler(req, responder));
+			return _handleResponse(route.handler(req, null, responder, res));
 		});
 
 		function _handleResponse(response) {
-			if (response === true) {
+			if (response === void 0) {
+				// do nothing; undefined means handler has taken responsibility
+			} else if (response === true) {
 				return _handleResponse(responder.status(200));
 			} else if (response === false) {
 				return _handleResponse(responder.status(500));
