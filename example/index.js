@@ -11,9 +11,16 @@ appy({
 			directory: __dirname + '/public'
 		},
 		{
-			path: '/test-api',
+			path: /^\/test-api\/(\d+)$/,
 			handler: function(req, matches, response) {
-				return response.json([req.query, Math.random(), matches]);
+				return response.json([req.query, matches, Math.random()]);
+			}
+		},
+		{
+			path: '/foo/:bar/:baz',
+			method: 'get',
+			handler: function(req, matches, response) {
+				return response.json(matches);
 			}
 		}
 	]
