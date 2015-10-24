@@ -8,10 +8,40 @@ const Promise = require('es6-promise').Promise;
 const rescape = require('escape-string-regexp');
 const statik = require('node-static');
 
-const corsHeaders = {
+const CORS_HEADERS = {
 	origin 		: 'Access-Control-Allow-Origin',
 	headers 	: 'Access-Control-Allow-Headers'
 };
+
+const BODY_HANDLERS = {
+	'application/json': {
+		read: 'string',
+		filter: function(body) { return JSON.parse(body); }
+	}
+};
+
+function readBody(handler, req, cb) {
+	var reader = (handler.read === 'string') ? readStringBody : readBufferBody;
+	reader(req, function(body) {
+		try {
+			var parsedBody = handler.filter(body);
+		} catch (e) {
+			return cb(e);
+		}
+		cb(null, parsedBody);
+	});
+}
+
+function readStringBody(req, cb) {
+	var body = '';
+	req.setEncoding('utf8');
+	req.on('data', function(chunk) { body += chunk; });
+	req.on('end', function() { cb(body); });
+}
+
+function readBufferBody(req, cb) {
+	throw new Error("not implemented");
+}
 
 function stringResponse(status, mimeType, str) {
 	return [status, {'Content-Type': mimeType}, str];
@@ -42,66 +72,44 @@ function sendTextErrorResponse(res, status) {
 	sendResponse(res, status, {'Content-Type': 'text/plain'}, httpStatus[status] || 'Error');
 }
 
-function attachFileHandler(route) {
-	var server = new statik.Server(path.dirname(route.file));
-	var file = './' + path.basename(route.file);
-	route.handler = function(req, _1, _2, res) {
-		server.serveFile(file, 200, {}, req, res);
-	}
-}
-
-function attachDirectoryHandler(route) {
-	var server = new statik.Server(route.directory);
-	route.handler = function(req, _1, _2, res) {
-		server.serve(req, res, function(e, _3) {
-			if (e) {
-				sendTextErrorResponse(res, e.status === 404 ? 404 : 500);
+// TODO: add support for Regex named matches
+// TODO: add support for Rails-style /:foo/:bar params
+function makeSimpleRouter(routes) {
+	function _matches(route, req) {
+		if (route.path) {
+			if (typeof route.path === 'string' && route.path !== req.uri.pathname) {
+				return false;
+			} else if (!req.uri.pathname.match(route.path)) {
+				return false;
 			}
-		});
+		}
+		if (req.method !== 'OPTIONS') {
+			if (route.method && route.method.toUpperCase() !== req.method) {
+				return false;
+			}
+		}
+		return {};
+	}
+
+	return function(req) {
+		for (var i = 0; i < routes.length; ++i) {
+			var r = routes[i], m = _matches(r, req);
+			if (m) {
+				return [r, m];
+			}
+		}
+		return null;
 	}
 }
 
 module.exports = function(opts) {
 
-	var routes = opts.routes;
 	var cors = opts.cors || {};
+	var route = opts.route || makeSimpleRouter(opts.routes || []);
+	var fileServers = {};
 
-	routes.forEach(function(r) {
-		if (r.file) {
-			attachFileHandler(r);
-		} else if (r.directory) {
-			attachDirectoryHandler(r);
-		}
-	});
+	return http.createServer(function(req, res) {
 
-	function routeMatches(route, request) {
-		if (route.path) {
-			if (typeof route.path === 'string' && route.path !== request.uri.pathname) {
-				return false;
-			} else if (!request.uri.pathname.match(route.path)) {
-				return false;
-			}
-		}
-		if (request.method !== 'OPTIONS') {
-			if (route.method && route.method.toUpperCase() !== request.method) {
-				return false;
-			}	
-		}
-		return true;
-	}
-
-	function findRoute(request) {
-		for (var i = 0; i < routes.length; ++i) {
-			if (routeMatches(routes[i], request)) {
-				return routes[i];
-			}
-		}
-		return null;
-	}
-
-	var server = http.createServer(function(req, res) {
-
-		// TODO: 
 		req.uri = parseUrl(req.url);
 
 		var responder = {
@@ -124,8 +132,8 @@ module.exports = function(opts) {
 			}
 		};
 
-		var route = findRoute(req);
-		if (!route) {
+		var match = route(req);
+		if (!match) {
 			return _handleResponse(responder.status(404));
 		}
 
@@ -136,21 +144,32 @@ module.exports = function(opts) {
 			}, '');
 		}
 
-		// TODO: need to do smart body parsing...
-		var body = '';
-		req.setEncoding('utf8');
-		req.on('data', function(chunk) { body += chunk; });
-		req.on('end', function() {
-			if (req.headers['content-type'] === 'application/json') {
-				try {
-					body = JSON.parse(body);	
-				} catch (e) {
+		var bodyHandler = BODY_HANDLERS[req.headers['content-type']];
+		if (bodyHandler) {
+			readBody(bodyHandler, req, function(err, parsedBody) {
+				if (err) {
 					return _handleResponse(responder.status(400));
 				}
+				req.body = parsedBody;
+				_dispatch(match[0], match[1]);
+			});
+		} else {
+			_dispatch(match[0], match[1]);
+		}
+
+		function _dispatch(route, matches) {
+			if (route.file) {
+				_fileServer(path.dirname(route.file))
+					.serveFile('./' + path.basename(route.file), 200, {}, req, res);
+			} else if (route.directory) {
+				_fileServer(route.directory)
+					.serve(req, res, function(e) {
+						if (e) sendTextErrorResponse(res, e.status === 404 ? 404 : 500);
+					});
+			} else {
+				_handleResponse(route.handler(req, matches, responder, res));
 			}
-			req.body = body;
-			return _handleResponse(route.handler(req, null, responder, res));
-		});
+		}
 
 		function _handleResponse(response) {
 			if (response === void 0) {
@@ -181,7 +200,7 @@ module.exports = function(opts) {
 				}
 			}
 			for (var k in cors) {
-				headers[corsHeaders[k]] = cors[k];
+				headers[CORS_HEADERS[k]] = cors[k];
 			}
 			res.writeHead(status, headers);
 			if (typeof body.pipe === 'function') {
@@ -191,8 +210,14 @@ module.exports = function(opts) {
 			}
 		}
 
-	});
+		function _fileServer(directory) {
+			var srv = fileServers[directory];
+			if (!srv) {
+				srv = fileServers[directory] = new statik.Server(directory);
+			}
+			return srv;
+		}
 
-	return server;
+	});
 
 }
