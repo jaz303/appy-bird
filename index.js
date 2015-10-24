@@ -1,10 +1,10 @@
 const fs = require('fs');
 const http = require('http');
-const httpStatus = require('http-status');
-const mime = require('mime-types');
 const path = require('path');
 const parseUrl = require('url').parse;
-const Promise = require('es6-promise').Promise;
+
+const httpStatus = require('http-status');
+const mime = require('mime-types');
 const rescape = require('escape-string-regexp');
 const statik = require('node-static');
 
