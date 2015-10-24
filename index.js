@@ -43,6 +43,33 @@ function readBufferBody(req, cb) {
 	throw new Error("not implemented");
 }
 
+var responder = {
+	html: function(status, html) {
+		if (arguments.length === 1) {
+			html = status;
+			status = 200;
+		}
+		return stringResponse(status, 'text/html', html);
+	},
+	json: function(status, obj) {
+		if (arguments.length === 1) {
+			obj = status;
+			status = 200;
+		}
+		return stringResponse(status, 'application/json', JSON.stringify(obj));
+	},
+	status: function(code, message) {
+		return stringResponse(code, 'text/html', '<h1>' + code + ' ' + (message || httpStatus[code]) + '</h1>');
+	},
+	text: function(status, text) {
+		if (arguments.length === 1) {
+			text = status;
+			status = 200;
+		}
+		return stringResponse(status, 'text/plain', text);
+	}
+};
+
 function stringResponse(status, mimeType, str) {
 	return [status, {'Content-Type': mimeType}, str];
 }
@@ -111,27 +138,7 @@ module.exports = function(opts) {
 	return http.createServer(function(req, res) {
 
 		req.uri = parseUrl(req.url);
-
-		var responder = {
-			html: function(status, html) {
-				if (arguments.length === 1) {
-					html = status;
-					status = 200;
-				}
-				return stringResponse(status, 'text/html', html);
-			},
-			json: function(status, obj) {
-				if (arguments.length === 1) {
-					obj = status;
-					status = 200;
-				}
-				return stringResponse(status, 'application/json', JSON.stringify(obj));
-			},
-			status: function(code, message) {
-				return stringResponse(code, 'text/html', '<h1>' + code + ' ' + (message || httpStatus[code]) + '</h1>');
-			}
-		};
-
+		
 		var match = route(req);
 		if (!match) {
 			return _handleResponse(responder.status(404));
