@@ -1,0 +1,28 @@
+{
+  "name": "appy-bird",
+  "version": "0.0.1",
+  "description": "'appy-bird makes APIs as easy as flying into a brick wall!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaz303/appy-bird.git"
+  },
+  "keywords": [
+    "api",
+    "http",
+    "server",
+    "web",
+    "json",
+    "simple",
+    "promises"
+  ],
+  "author": "Jason Frame <jason@onehackoranother.com> (http://jasonframe.co.uk)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jaz303/appy-bird/issues"
+  },
+  "homepage": "https://github.com/jaz303/appy-bird#readme"
+}
