@@ -13,7 +13,7 @@ appy({
 		{
 			path: '/test-api',
 			handler: function(req, matches, response) {
-				return response.json([1,2,3,4,5, Math.random(), matches]);
+				return response.json([req.query, Math.random(), matches]);
 			}
 		}
 	]

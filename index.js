@@ -2,6 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const parseUrl = require('url').parse;
+const querystring = require('querystring');
 
 const httpStatus = require('http-status');
 const mime = require('mime-types');
@@ -142,11 +143,13 @@ function appy(opts) {
 
 	var cors = opts.cors || {};
 	var route = opts.route || makeSimpleRouter(opts.routes || []);
+	var parseQuery = opts.parseQuery || querystring.parse;
 	var fileServers = {};
 
 	return http.createServer(function(req, res) {
 
 		req.uri = parseUrl(req.url);
+		req.query = req.uri.query ? parseQuery(req.uri.query) : {};
 		
 		var match = route(req);
 		if (!match) {
