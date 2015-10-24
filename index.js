@@ -108,7 +108,6 @@ function sendTextErrorResponse(res, status) {
 	sendResponse(res, status, {'Content-Type': 'text/plain'}, httpStatus[status] || 'Error');
 }
 
-// TODO: add support for Rails-style /:foo/:bar params
 function makeSimpleRouter(routes) {
 	
 	// preprocess routes
