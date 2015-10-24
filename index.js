@@ -43,7 +43,9 @@ function readStringBody(req, cb) {
 }
 
 function readBufferBody(req, cb) {
-	throw new Error("not implemented");
+	var bufs = [];
+	req.on('data', function(chunk) { bufs.push(chunk); });
+	req.on('end', function() { cb(Buffer.concat(bufs)); });
 }
 
 var responder = {
