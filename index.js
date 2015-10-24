@@ -217,14 +217,14 @@ module.exports = function(opts) {
 			}
 		}
 
-		function _fileServer(directory) {
-			var srv = fileServers[directory];
-			if (!srv) {
-				srv = fileServers[directory] = new statik.Server(directory);
-			}
-			return srv;
-		}
-
 	});
+
+	function _fileServer(directory) {
+		var srv = fileServers[directory];
+		if (!srv) {
+			srv = fileServers[directory] = new statik.Server(directory);
+		}
+		return srv;
+	}
 
 }
