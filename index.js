@@ -20,6 +20,9 @@ const BODY_HANDLERS = {
 	}
 };
 
+module.exports = appy;
+module.exports.registerBodyHandler = registerBodyHandler;
+
 function readBody(handler, req, cb) {
 	var reader = (handler.read === 'string') ? readStringBody : readBufferBody;
 	reader(req, function(body) {
@@ -129,7 +132,11 @@ function makeSimpleRouter(routes) {
 	}
 }
 
-module.exports = function(opts) {
+function registerBodyHandler(contentType, read, handler) {
+	BODY_HANDLERS[contentType] = { read: read, handler: handler };
+}
+
+function appy(opts) {
 
 	var cors = opts.cors || {};
 	var route = opts.route || makeSimpleRouter(opts.routes || []);
