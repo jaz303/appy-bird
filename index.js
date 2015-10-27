@@ -142,7 +142,11 @@ function appy(opts) {
                         }
                     });
             } else {
-                _handleResponse(route.handler(req, matches, responder, res));
+                try {
+                    _handleResponse(route.handler(req, matches, responder, res));
+                } catch (e) {
+                    _handleResponse(responder.status(('status' in e) ? e.status : 500));
+                }
             }
         }
 
