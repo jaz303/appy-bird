@@ -56,55 +56,38 @@ var responder = {
             html = status;
             status = 200;
         }
-        return stringResponse(status, 'text/html', html);
+        return responder.string(status, 'text/html', html);
     },
     json: function(status, obj) {
         if (arguments.length === 1) {
             obj = status;
             status = 200;
         }
-        return stringResponse(status, 'application/json', JSON.stringify(obj));
+        return responder.string(status, 'application/json', JSON.stringify(obj));
     },
-    status: function(code, message) {
-        return stringResponse(code, 'text/html', '<h1>' + code + ' ' + (message || httpStatus[code]) + '</h1>');
+    status: function(code, message, html) {
+        if (message === true || message === false) {
+            html = message;
+            message = null;
+        }
+        message = code + ' ' + (message || httpStatus[code]);
+        if (html) {
+            return responder.html(code, '<h1>' + message + '</h1>');
+        } else {
+            return responder.text(code, message);
+        }
+    },
+    string: function(status, mimeType, str) {
+        return [status, {'Content-Type': mimeType}, str];
     },
     text: function(status, text) {
         if (arguments.length === 1) {
             text = status;
             status = 200;
         }
-        return stringResponse(status, 'text/plain', text);
+        return responder.string(status, 'text/plain', text);
     }
 };
-
-function stringResponse(status, mimeType, str) {
-    return [status, {'Content-Type': mimeType}, str];
-}
-
-function sendResponse(res, status, headers, body) {
-    if (!('Content-Length' in headers)) {
-        if (typeof body === 'string') {
-            headers['Content-Length'] = Buffer.byteLength(body, 'utf8');
-        } else if (typeof body.byteLength === 'function') {
-            headers['Content-Length'] = body.byteLength();
-        } else {
-            return _handleResponse(responder.status(500));
-        }
-    }
-    // for (var k in cors) {
-    //  headers[corsHeaders[k]] = cors[k];
-    // }
-    res.writeHead(status, headers);
-    if (typeof body.pipe === 'function') {
-        body.pipe(res);
-    } else {
-        res.end(body);
-    }
-}
-
-function sendTextErrorResponse(res, status) {
-    sendResponse(res, status, {'Content-Type': 'text/plain'}, httpStatus[status] || 'Error');
-}
 
 function registerBodyHandler(contentType, read, handler) {
     BODY_HANDLERS[contentType] = { read: read, handler: handler };
@@ -154,7 +137,9 @@ function appy(opts) {
             } else if (route.directory) {
                 _fileServer(route.directory)
                     .serve(req, res, function(e) {
-                        if (e) sendTextErrorResponse(res, e.status === 404 ? 404 : 500);
+                        if (e) {
+                            _handleResponse(responder.status(e.status === 404 ? 404 : 500));
+                        }
                     });
             } else {
                 _handleResponse(route.handler(req, matches, responder, res));
@@ -172,7 +157,8 @@ function appy(opts) {
                 response.then(function(res) {
                     return _handleResponse(res);
                 }, function(err) {
-                    return _handleResponse(responder.status(500));
+                    if (typeof err === 'number') err = { status: err };
+                    return _handleResponse(responder.status(err.status || 500));
                 });
             } else {
                 return _sendResponse(response[0], response[1], response[2]);
