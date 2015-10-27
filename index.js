@@ -171,8 +171,6 @@ function appy(opts) {
                     headers['Content-Length'] = Buffer.byteLength(body, 'utf8');
                 } else if (typeof body.byteLength === 'function') {
                     headers['Content-Length'] = body.byteLength();
-                } else {
-                    return _handleResponse(responder.status(500));
                 }
             }
             for (var k in cors) {
