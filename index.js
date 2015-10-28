@@ -65,16 +65,17 @@ var responder = {
         }
         return responder.string(status, 'application/json', JSON.stringify(obj));
     },
-    status: function(code, message, html) {
+    status: function(status, message, type) {
         if (message === true || message === false) {
             html = message;
             message = null;
         }
-        message = code + ' ' + (message || httpStatus[code]);
-        if (html) {
-            return responder.html(code, '<h1>' + message + '</h1>');
-        } else {
-            return responder.text(code, message);
+        message = status + ' ' + (message || httpStatus[code]);
+        switch (type || 'html') {
+            case 'html': return responder.html(status, '<h1>' + message + '</h1>');
+            case 'json': return responder.json(status, {});
+            case 'text': return responder.text(status, message);
+            default: throw new Error("unknown response type: " + type);
         }
     },
     string: function(status, mimeType, str) {
