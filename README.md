@@ -1,6 +1,6 @@
 # appy-bird
 
-`appy-bird` is built for those situations where you need to throw up a quick server to handle dynamic requests, and maybe serve a bunch of static files. No templating engines, no complicated middleware.
+`appy-bird` is built for those situations where you need to throw up a quick server to handle dynamic requests, return HTML/JSON, and maybe serve a bunch of static files. No templating engines, no complicated middleware.
 
 ## Features
 
@@ -16,3 +16,20 @@
 ## API
 
 ### Options
+
+  * `cors`: 
+  * `parseQuery`: function used to parse query string. Defaults to node's `querystring` module.
+  * `route`:
+  * `routes`:
+
+### Responder
+
+#### `responder.html([status], html, [extraHeaders])`
+
+#### `responder.json([status], obj, [extraHeaders])`
+
+#### `responder.status(status, [message], [type], [extraHeaders])`
+
+#### `responder.string(status, mimeType, str, [extraHeaders])`
+
+#### `responder.text([status], text, [extraHeaders])`
