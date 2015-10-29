@@ -71,7 +71,7 @@ var responder = {
             message = null;
         }
         message = status + ' ' + (message || httpStatus[code]);
-        switch (type || 'html') {
+        switch (type || 'text') {
             case 'html': return responder.html(status, '<h1>' + message + '</h1>');
             case 'json': return responder.json(status, {});
             case 'text': return responder.text(status, message);
