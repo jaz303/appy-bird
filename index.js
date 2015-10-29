@@ -146,7 +146,7 @@ function appy(opts) {
                 try {
                     _handleResponse(route.handler(req, matches, responder, res));
                 } catch (e) {
-                    _handleResponse(responder.status(('status' in e) ? e.status : 500));
+                    _handleError(e);
                 }
             }
         }
@@ -161,13 +161,15 @@ function appy(opts) {
             } else if (typeof response.then === 'function') {
                 response.then(function(res) {
                     return _handleResponse(res);
-                }, function(err) {
-                    if (typeof err === 'number') err = { status: err };
-                    return _handleResponse(responder.status(err.status || 500));
-                });
+                }, _handleError);
             } else {
                 return _sendResponse(response[0], response[1], response[2]);
             }
+        }
+
+        function _handleError(e) {
+            if (typeof e === 'number') e = { status: e };
+            _handleResponse(responder.status(e.status || 500));
         }
 
         function _sendResponse(status, headers, body) {
