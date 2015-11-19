@@ -11,8 +11,12 @@ const statik = require('node-static');
 const makeSimpleRouter = require('./lib/simple-router');
 
 const CORS_HEADERS = {
-    origin      : 'Access-Control-Allow-Origin',
-    headers     : 'Access-Control-Allow-Headers'
+    origin          : 'Access-Control-Allow-Origin',
+    exposeHeaders   : 'Access-Control-Expose-Headers',
+    maxAge          : 'Access-Control-Max-Age',
+    credentials     : 'Access-Control-Allow-Credentials',
+    methods         : 'Access-Control-Allow-Methods',
+    headers         : 'Access-Control-Allow-Headers',
 };
 
 const BODY_HANDLERS = {
