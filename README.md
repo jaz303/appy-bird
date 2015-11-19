@@ -1,6 +1,6 @@
 # appy-bird
 
-`appy-bird` is built for those situations where you need to throw up a quick server to handle dynamic requests, return HTML/JSON, and maybe serve a bunch of static files. No templating engines, no complicated middleware.
+`appy-bird` is a simple HTTP API server built for those situations where you need to throw up a quick system to handle dynamic requests, return HTML/JSON, and perhaps serve a bunch of static files. There's no templating engines or complicated middleware in sight.
 
 ## Features
 
@@ -58,11 +58,75 @@
   
 ### Routing
 
+Routing is process of taking an HTTP request and selecting the correct handler to invoke. `appy-bird` provides a simple built-in router, or alternatively you can provide your own.
 
+#### Using the built-in router
+
+The built-in router represents routes as an array of objects; the first of these objects to match an incoming request "wins" and will be selected to handle it.
+
+Valid keys to constrain the requests matched by a given route are:
+
+  * `path`: a value that the request path must match; either a string or `RegExp`. String values may include colon-prefixed named segments (e.g. `/:controller/:action/:id`), which will be collected and passed to the handler's `matches` parameter.
+  * `method`: string denoting required HTTP method
+
+Route objects must also include one (and only one) of the following action keys to indicate what should happen when the route is matched:
+
+  * `file`: absolute path of a static file to serve.
+  * `directory`: absolute path of a static directory to serve. The request path will be appended.
+  * `handler`: a handler function (see Handlers, below)
+
+##### Examples
+
+Static match, routed to handler function:
+
+    {
+      path: '/foobar',
+      handler: function(req, matches, r, res) {
+        // ...
+      }
+    }
+
+Static match, routed to a static file:
+
+    {
+      path: '/photo.jpg',
+      file: __dirname + '/image.jpg'
+    }
+
+Regexp match, routed to a static directory, accepting `GET` requests only:
+
+    {
+      path: /^\/assets[\/$]/,
+      method: 'get',
+      directory: __dirname + '/public'
+    }
+
+Regexp match, routed to a handler function. Within the handler, `matches` is an array containing the regex captures:
+
+    {
+      path: /^\/add\/(\d+)$/,
+      handler: function(req, matches, response) {
+        // ...
+      }
+    }
+
+Dynamic match, routed to a handler function, `POST` requests only. Within the handler, `matches` is an object with `action` and `id` keys:
+
+    {
+      path: '/users/:action/:id',
+      method: 'post',
+      handler: function(req, matches, r, res) {
+        // 
+      }
+    }
+
+#### Using your own router
+
+To use your own your own router, simply pass a function for the `route` option. This function will receive a `request` object (see Handler parameters, below) and should return either a route descriptor, or `null` if no matching route was found. A route descriptor is a 2-element array of `[route, matches]`, where `route` is an object containing one of the action keys described above , and `matches` represents any parameters that your router has extracted from the URL (or indeed from any other aspect of the request), such as Rails-style `/:path/:segments`. These will be passed as the second argument to thethe `handler` function.
 
 ### Handlers
 
-Handlers have the signature:
+Any route that does not resolve to a static directory or file must provide a route handler - a Javascript function to handle the request and return the reponse. Handlers have the signature:
 
 ```javascript
 function(request, matches, responder, response) {}
