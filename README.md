@@ -59,14 +59,32 @@ Errors are sent with content type `text/plain`.
 
 ### Responder
 
-The responder is a helper object, passed to your handler functions, that can be used to generate return arrays.
+The responder is a helper object, passed to your handler functions, that can be used to generate correctly formatted response triples.
 
-#### `responder.html([status], html, [extraHeaders])`
+#### `responder.html([status], html)`
 
-#### `responder.json([status], obj, [extraHeaders])`
+Return an HTML page with optional `status`.
 
-#### `responder.status(status, [message], [type], [extraHeaders])`
+#### `responder.json([status], obj)`
 
-#### `responder.string(status, mimeType, str, [extraHeaders])`
+Return a JSON representation of `obj` with optional `status`.
 
-#### `responder.text([status], text, [extraHeaders])`
+#### `responder.status(status, [message], [type])`
+
+Returns `status` code. If `message` is omitted, the textual representation of `status` will be used.
+
+`type`, if specified, may be one of:
+
+  * `text` (default): response body is `message`
+  * `html`: response body is `message` wrapped in &lt;1&gt; tags
+  * `json`: response body is empty object
+
+To specify `type` whilst retaining the default `message`, pass `null` for `message`.
+
+#### `responder.string(status, mimeType, str)`
+
+Returns a string response with a given MIME type.
+
+#### `responder.text([status], text)`
+
+Return a plain text response with optional `status`.
