@@ -66,11 +66,7 @@ var responder = {
         return responder.string(status, 'application/json', JSON.stringify(obj));
     },
     status: function(status, message, type) {
-        if (message === true || message === false) {
-            html = message;
-            message = null;
-        }
-        message = status + ' ' + (message || httpStatus[code]);
+        message = status + ' ' + (message || httpStatus[status]);
         switch (type || 'text') {
             case 'html': return responder.html(status, '<h1>' + message + '</h1>');
             case 'json': return responder.json(status, {});
