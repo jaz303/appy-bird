@@ -13,14 +13,52 @@
   * pluggable body parsing, for non-JSON payloads
   * tiny codebase (~200 LOC + optional router component)
 
+## Quick Start
+
+    var server = require('appy-bird');
+
+    server({
+        routes: [
+            {
+                // serve a static file
+                path: '/foo',
+                file: __dirname + '/foo.txt'
+            },
+            {
+                // serve static files from a directory
+                path: /^\/assets[\/$]/,
+                directory: __dirname + '/public'
+            },
+            {
+                // regex path with matches being passed to the handler
+                path: /^\/test-api\/(\d+)$/,
+                handler: function(req, matches, r) {
+                    return r.json([req.query, matches, Math.random()]);
+                }
+            },
+            {
+                // path matching with 
+                path: '/greet/:title/:name',
+                method: 'get',
+                handler: function(req, matches, r) {
+                    return r.text("hello " + matches.title + " " + matches.name);
+                }
+            }
+        ]
+    }).listen(8080);
+
 ## API
 
 ### Options
 
-  * `cors`: 
+  * `cors`: object specifying CORS headers. Valid keys: `origin`, `exposeHeaders`, `maxAge`, `credentials`, `methods`, `headers`. If specified, CORS headers will be injected into every response. Support for `OPTIONS` requests is automatic.
   * `parseQuery`: function used to parse query string. Defaults to node's `querystring` module.
-  * `route`:
-  * `routes`:
+  * `routes`: array of routes. See Routing, below.
+  * `route`: instead of supplying a route array you may use this option to supply your own routing function. See Routing, below.
+  
+### Routing
+
+
 
 ### Handlers
 
@@ -76,7 +114,7 @@ Returns `status` code. If `message` is omitted, the textual representation of `s
 `type`, if specified, may be one of:
 
   * `text` (default): response body is `message`
-  * `html`: response body is `message` wrapped in &lt;1&gt; tags
+  * `html`: response body is `message` wrapped in an `&lt;h1&gt;` tag
   * `json`: response body is empty object
 
 To specify `type` whilst retaining the default `message`, pass `null` for `message`.
