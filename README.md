@@ -1,6 +1,6 @@
 # appy-bird
 
-`appy-bird` is a simple HTTP API server built for those situations where you need to throw up a quick system to handle dynamic requests, return HTML/JSON, and perhaps serve a bunch of static files. There's no templating engines or complicated middleware in sight.
+`appy-bird` is a simple HTTP API server built for those situations where you need to throw up a quick system to handle dynamic requests, return HTML/JSON, and perhaps serve a bunch of static files. There's no templating engines or complicated middleware anywhere in sight - just a lightweight router and some sensible conventions for handling responses.
 
 ## Features
 
@@ -64,7 +64,7 @@ Routing is process of taking an HTTP request and selecting the correct handler t
 
 The built-in router represents routes as an array of objects; the first of these objects to match an incoming request "wins" and will be selected to handle it.
 
-Valid keys to constrain the requests matched by a given route are:
+Valid keys to constrain those requests matched by a given route are:
 
   * `path`: a value that the request path must match; either a string or `RegExp`. String values may include colon-prefixed named segments (e.g. `/:controller/:action/:id`), which will be collected and passed to the handler's `matches` parameter.
   * `method`: string denoting required HTTP method
@@ -122,7 +122,7 @@ Dynamic match, routed to a handler function, `POST` requests only. Within the ha
 
 #### Using your own router
 
-To use your own your own router, simply pass a function for the `route` option. This function will receive a `request` object (see Handler parameters, below) and should return either a route descriptor, or `null` if no matching route was found. A route descriptor is a 2-element array of `[route, matches]`, where `route` is an object containing one of the action keys described above , and `matches` represents any parameters that your router has extracted from the URL (or indeed from any other aspect of the request), such as Rails-style `/:path/:segments`. These will be passed as the second argument to thethe `handler` function.
+To use your own your own router, simply pass a function for the `route` option. This function will receive a `request` object (see Handler parameters, below) and should return either a route descriptor, or `null` if no matching route was found. A route descriptor is a 2-element array of `[route, matches]`, where `route` is an object containing one of the action keys described above , and `matches` represents any parameters that your router has extracted from the URL (or indeed from any other aspect of the request), such as Rails-style `/:path/:segments`. These will be passed as the second argument to the `handler` function.
 
 ### Handlers
 
