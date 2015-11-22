@@ -171,6 +171,10 @@ Return an HTML page with optional `status`.
 
 Return a JSON representation of `obj` with optional `status`.
 
+#### `responder.redirect(url)`
+
+Redirect to `url`.
+
 #### `responder.status(status, [message], [type])`
 
 Returns `status` code. If `message` is omitted, the textual representation of `status` will be used.

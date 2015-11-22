@@ -69,6 +69,9 @@ var responder = {
         }
         return responder.string(status, 'application/json', JSON.stringify(obj));
     },
+    redirect: function(url) {
+        return [302, {'Location': url}, ''];
+    },
     status: function(status, message, type) {
         message = status + ' ' + (message || httpStatus[status]);
         switch (type || 'text') {
