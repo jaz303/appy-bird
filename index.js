@@ -55,6 +55,21 @@ function readBufferBody(req, cb) {
 }
 
 var responder = {
+    file: function(path, mimeType) {
+        return new Promise(function(resolve, reject) {
+            fs.stat(path, function(err, stat) {
+                if (err) return reject(500);
+                resolve([
+                    200,
+                    {
+                        'Content-Type': mimeType,
+                        'Content-Length': stat.size
+                    },
+                    fs.createReadStream(path)
+                ]);
+            });
+        });
+    },
     html: function(status, html) {
         if (arguments.length === 1) {
             html = status;
