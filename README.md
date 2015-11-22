@@ -163,6 +163,10 @@ Errors are sent with content type `text/plain`.
 
 The responder is a helper object, passed to your handler functions, that can be used to generate correctly formatted response triples.
 
+#### `responder.file(absolutePath, [mimeType])`
+
+Stream a file from the local filesystem. If `mimeType` is omitted it will be inferred from the filename.
+
 #### `responder.html([status], html)`
 
 Return an HTML page with optional `status`.

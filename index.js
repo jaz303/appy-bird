@@ -62,7 +62,7 @@ var responder = {
                 resolve([
                     200,
                     {
-                        'Content-Type': mimeType,
+                        'Content-Type': mimeType || mime.lookup(path),
                         'Content-Length': stat.size
                     },
                     fs.createReadStream(path)
