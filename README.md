@@ -52,6 +52,7 @@
 ### Options
 
   * `cors`: object specifying CORS headers. Valid keys: `origin`, `exposeHeaders`, `maxAge`, `credentials`, `methods`, `headers`. If specified, CORS headers will be injected into every response. Support for `OPTIONS` requests is automatic.
+  * `logger`: object implementing a `console`-style interface with `log`, `warn` and `error` methods. Defaults to `console`; pass `false` to disable logging.
   * `parseQuery`: function used to parse query string. Defaults to node's `querystring` module.
   * `routes`: array of routes. See Routing, below.
   * `route`: instead of supplying a route array you may use this option to supply your own routing function. See Routing, below.
