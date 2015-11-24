@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -164,6 +166,20 @@ function appy(opts) {
                 try {
                     _handleResponse(route.handler(req, matches, responder, res));
                 } catch (e) {
+                    let message, stack;
+
+                    if (e instanceof Error) {
+                        message = e.message;
+                        let lines = e.stack.split('\n');
+                        let internalLineIndex = lines.findIndex(line => line.match(/_dispatch.*\/appy-bird\/index.js/));
+                        stack = lines.slice(1, internalLineIndex + 1).join('\n');
+                    } else {
+                        message = e;
+                    }
+
+                    console.error(`Error in handler for ${route.path}: ${message}`);
+                    if (stack) { console.error(stack); }
+
                     _handleError(e);
                 }
             }
