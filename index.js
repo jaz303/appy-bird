@@ -12,6 +12,12 @@ const statik = require('node-static');
 
 const makeSimpleRouter = require('./lib/simple-router');
 
+const nullLogger = {
+    log: function() {},
+    warn: function() {},
+    error: function() {}
+};
+
 const CORS_HEADERS = {
     origin          : 'Access-Control-Allow-Origin',
     exposeHeaders   : 'Access-Control-Expose-Headers',
@@ -120,6 +126,7 @@ function appy(opts) {
     var route = opts.route || makeSimpleRouter(opts.routes || []);
     var parseQuery = opts.parseQuery || querystring.parse;
     var fileServers = {};
+    let logger = (opts.logger === false) ? nullLogger : (opts.logger || console);
 
     return http.createServer(function(req, res) {
 
@@ -177,7 +184,7 @@ function appy(opts) {
                         message = e;
                     }
 
-                    console.error(`Error in handler for ${route.path}: ${message}`);
+                    logger.error(`Error in handler for ${route.path}: ${message}`);
                     if (stack) { console.error(stack); }
 
                     _handleError(e);
