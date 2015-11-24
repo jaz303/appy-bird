@@ -22,6 +22,13 @@ appy({
             handler: function(req, matches, response) {
                 return response.json(matches);
             }
+        },
+        {
+            path: '/errortest',
+            method: 'get',
+            handler: function() {
+                throw new Error("broken!");
+            }
         }
     ]
 }).listen(8080);
