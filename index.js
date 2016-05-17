@@ -31,6 +31,10 @@ const BODY_HANDLERS = {
     'application/json': {
         read: 'string',
         filter: function(body) { return JSON.parse(body); }
+    },
+    'application/x-www-form-urlencoded': {
+        read: 'string',
+        filter: function(body) { return querystring.parse(body); }
     }
 };
 
