@@ -117,7 +117,7 @@ var responder = {
 };
 
 function registerBodyHandler(contentType, read, handler) {
-    BODY_HANDLERS[contentType] = { read: read, handler: handler };
+    BODY_HANDLERS[contentType] = { read: read, filter: handler };
 }
 
 function appy(opts) {
