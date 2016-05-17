@@ -1,6 +1,6 @@
 {
   "name": "appy-bird",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "'appy-bird makes APIs as easy as flying into a brick wall!",
   "main": "index.js",
   "scripts": {
