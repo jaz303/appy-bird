@@ -16,6 +16,9 @@ function one(name, handler, cb, opts) {
 	opts = opts || {};
 
 	var server = createServer(port, {
+		cors: {
+			maxAge: 123456
+		},
 		routes: [
 			{
 				path: '/test',
@@ -200,6 +203,17 @@ one("static directory",
 	},
 	{
 		path: '/files/test.txt'
+	}
+);
+
+one("static file includes CORS headers",
+	null,
+	function(assert, res, body) {
+		console.log(Object.keys(res.headers));
+		assert.equals(res.headers['access-control-max-age'], '123456');
+	},
+	{
+		path: '/test-file'
 	}
 );
 

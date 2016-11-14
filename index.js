@@ -53,6 +53,13 @@ function readBody(handler, req, cb) {
     });
 }
 
+function mergeCorsHeaders(headers, cors) {
+    for (var k in cors) {
+        headers[CORS_HEADERS[k]] = cors[k];
+    }
+    return headers;
+}
+
 function readStringBody(req, cb) {
     var body = '';
     req.setEncoding('utf8');
@@ -164,10 +171,10 @@ function appy(opts) {
 
         function _dispatch(route, matches) {
             if (route.file) {
-                _fileServer(path.dirname(route.file))
+                _fileServer(path.dirname(route.file), cors)
                     .serveFile('./' + path.basename(route.file), 200, {}, req, res);
             } else if (route.directory) {
-                _fileServer(route.directory)
+                _fileServer(route.directory, cors)
                     .serve(req, res, function(e) {
                         if (e) {
                             _handleResponse(responder.status(e.status === 404 ? 404 : 500));
@@ -225,9 +232,7 @@ function appy(opts) {
                     headers['Content-Length'] = body.byteLength();
                 }
             }
-            for (var k in cors) {
-                headers[CORS_HEADERS[k]] = cors[k];
-            }
+            mergeCorsHeaders(headers, cors);
             res.writeHead(status, headers);
             if (typeof body.pipe === 'function') {
                 body.pipe(res);
@@ -238,10 +243,12 @@ function appy(opts) {
 
     });
 
-    function _fileServer(directory) {
-        var srv = fileServers[directory];
+    function _fileServer(directory, cors) {
+        let srv = fileServers[directory];
         if (!srv) {
-            srv = fileServers[directory] = new statik.Server(directory);
+            srv = fileServers[directory] = new statik.Server(directory, {
+                headers: mergeCorsHeaders({}, cors)
+            });
         }
         return srv;
     }
